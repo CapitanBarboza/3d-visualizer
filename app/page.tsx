@@ -304,7 +304,7 @@ export default function TerminalStyleVisualizer() {
 
       // URL de música ambiental (puedes cambiar esta URL por cualquier MP3)
       // Usando una URL de ejemplo - puedes reemplazarla con tu propio archivo
-      audio.src = "/audio/ambient-music.mp3" // Placeholder
+      audio.src = "/audio/ambient-music.mp3"// Placeholder
       audio.loop = true
       audio.volume = audioVolume
       audio.preload = "auto"
@@ -1026,15 +1026,27 @@ export default function TerminalStyleVisualizer() {
     }
   }
 
-  const handleMouseMove = (event: React.MouseEvent) => {
+  const handleMouseMove = (event: React.MouseEvent | React.TouchEvent) => {
     if (!raycasterRef.current || !mouseRef.current || !cameraRef.current) return
 
     const controls = cameraControlsRef.current
     controls.lastMouseMoveTime = Date.now()
 
+    // Obtener coordenadas del evento (mouse o touch)
+    let clientX: number, clientY: number
+    if ("touches" in event && event.touches.length > 0) {
+      clientX = event.touches[0].clientX
+      clientY = event.touches[0].clientY
+    } else if ("clientX" in event) {
+      clientX = event.clientX
+      clientY = event.clientY
+    } else {
+      return
+    }
+
     if (!controls.isMouseDown && !controls.isMiddleMouseDown && !autoExploreMode) {
-      mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1
-      mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1
+      mouseRef.current.x = (clientX / window.innerWidth) * 2 - 1
+      mouseRef.current.y = -(clientY / window.innerHeight) * 2 + 1
 
       raycasterRef.current.setFromCamera(mouseRef.current, cameraRef.current)
       const intersects = raycasterRef.current.intersectObjects(clickTargetsRef.current)
@@ -1044,8 +1056,8 @@ export default function TerminalStyleVisualizer() {
         if (pointData) {
           setCategoryLabel({
             show: true,
-            x: event.clientX,
-            y: event.clientY,
+            x: clientX,
+            y: clientY,
             text: pointData.subCategory,
             category: pointData.category,
           })
@@ -1060,8 +1072,8 @@ export default function TerminalStyleVisualizer() {
       autoExploreRef.current.isActive = false
       autoExploreRef.current.isTransitioning = false
 
-      const deltaX = event.clientX - controls.prevMouseX
-      const deltaY = event.clientY - controls.prevMouseY
+      const deltaX = clientX - controls.prevMouseX
+      const deltaY = clientY - controls.prevMouseY
 
       controls.phi -= deltaY * 0.003
       controls.theta -= deltaX * 0.003
@@ -1072,21 +1084,37 @@ export default function TerminalStyleVisualizer() {
       cameraRef.current.position.y = controls.target.y + radius * Math.cos(controls.phi)
       cameraRef.current.position.z = controls.target.z + radius * Math.sin(controls.phi) * Math.cos(controls.theta)
 
-      controls.prevMouseX = event.clientX
-      controls.prevMouseY = event.clientY
+      controls.prevMouseX = clientX
+      controls.prevMouseY = clientY
       setCategoryLabel((prev) => ({ ...prev, show: false }))
       setDetailedInfo((prev) => ({ ...prev, show: false }))
       setCurrentExploredPoint(null)
     }
   }
 
-  const handleMouseDown = (event: React.MouseEvent) => {
+  const handleMouseDown = (event: React.MouseEvent | React.TouchEvent) => {
     const controls = cameraControlsRef.current
 
-    if (event.button === 0) {
+    // Obtener coordenadas del evento (mouse o touch)
+    let clientX: number,
+      clientY: number,
+      button = 0
+    if ("touches" in event && event.touches.length > 0) {
+      clientX = event.touches[0].clientX
+      clientY = event.touches[0].clientY
+      button = 0 // Simular botón izquierdo para touch
+    } else if ("clientX" in event) {
+      clientX = event.clientX
+      clientY = event.clientY
+      button = event.button
+    } else {
+      return
+    }
+
+    if (button === 0) {
       controls.isMouseDown = true
-      controls.prevMouseX = event.clientX
-      controls.prevMouseY = event.clientY
+      controls.prevMouseX = clientX
+      controls.prevMouseY = clientY
       controls.autoRotate = false
       autoExploreRef.current.isActive = false
       autoExploreRef.current.isTransitioning = false
@@ -1099,10 +1127,17 @@ export default function TerminalStyleVisualizer() {
     setCurrentExploredPoint(null)
   }
 
-  const handleMouseUp = (event: React.MouseEvent) => {
+  const handleMouseUp = (event: React.MouseEvent | React.TouchEvent) => {
     const controls = cameraControlsRef.current
 
-    if (event.button === 0) {
+    let button = 0
+    if ("changedTouches" in event) {
+      button = 0 // Touch end
+    } else if ("button" in event) {
+      button = event.button
+    }
+
+    if (button === 0) {
       controls.isMouseDown = false
       controls.lastMouseMoveTime = Date.now()
       setTimeout(() => {
@@ -1114,14 +1149,29 @@ export default function TerminalStyleVisualizer() {
     }
   }
 
-  const handleClick = (event: React.MouseEvent) => {
+  const handleClick = (event: React.MouseEvent | React.TouchEvent) => {
     if (!raycasterRef.current || !mouseRef.current || !cameraRef.current) return
 
     const controls = cameraControlsRef.current
     if (controls.isMouseDown || controls.isMiddleMouseDown || autoExploreMode) return
 
-    mouseRef.current.x = (event.clientX / window.innerWidth) * 2 - 1
-    mouseRef.current.y = -(event.clientY / window.innerHeight) * 2 + 1
+    // Obtener coordenadas del evento (mouse o touch)
+    let clientX: number, clientY: number
+    if ("touches" in event && event.touches.length > 0) {
+      clientX = event.touches[0].clientX
+      clientY = event.touches[0].clientY
+    } else if ("changedTouches" in event && event.changedTouches.length > 0) {
+      clientX = event.changedTouches[0].clientX
+      clientY = event.changedTouches[0].clientY
+    } else if ("clientX" in event) {
+      clientX = event.clientX
+      clientY = event.clientY
+    } else {
+      return
+    }
+
+    mouseRef.current.x = (clientX / window.innerWidth) * 2 - 1
+    mouseRef.current.y = -(clientY / window.innerHeight) * 2 + 1
 
     raycasterRef.current.setFromCamera(mouseRef.current, cameraRef.current)
     const intersects = raycasterRef.current.intersectObjects(clickTargetsRef.current)
@@ -1132,8 +1182,8 @@ export default function TerminalStyleVisualizer() {
         setCategoryLabel((prev) => ({ ...prev, show: false }))
         setDetailedInfo({
           show: true,
-          x: event.clientX,
-          y: event.clientY,
+          x: clientX,
+          y: clientY,
           data: pointData,
         })
         setCurrentExploredPoint(pointData)
@@ -1220,7 +1270,11 @@ export default function TerminalStyleVisualizer() {
         onMouseUp={handleMouseUp}
         onClick={handleClick}
         onWheel={handleWheel}
+        onTouchStart={handleMouseDown}
+        onTouchMove={handleMouseMove}
+        onTouchEnd={handleMouseUp}
         onContextMenu={(e) => e.preventDefault()}
+        style={{ touchAction: "none" }} // Previene scroll en móviles
       />
 
       {/* Loading Indicator */}
@@ -1230,19 +1284,19 @@ export default function TerminalStyleVisualizer() {
         </div>
       )}
 
-      {/* Banner Publicitario Feria Expogrado */}
-      <div className="absolute top-4 right-4 z-20 max-w-xs sm:max-w-sm md:max-w-md">
-        <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 p-1 rounded-lg animate-pulse">
-          <div className="bg-black/95 p-3 sm:p-4 rounded-lg backdrop-blur-sm">
-            <div className="text-xs sm:text-sm text-white font-bold uppercase tracking-wider mb-2 text-center">
+      {/* Banner Publicitario Feria Expogrado - Mejorado para móviles */}
+      <div className="absolute top-2 right-2 z-20 max-w-[200px] sm:max-w-xs md:max-w-sm lg:max-w-md">
+        <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 p-0.5 sm:p-1 rounded-lg animate-pulse">
+          <div className="bg-black/95 p-2 sm:p-3 md:p-4 rounded-lg backdrop-blur-sm">
+            <div className="text-[10px] sm:text-xs text-white font-bold uppercase tracking-wider mb-1 sm:mb-2 text-center">
               🎓 FERIA EXPOGRADO 🎓
             </div>
-            <div className="text-xs text-white/90 mb-2">
+            <div className="text-[9px] sm:text-xs text-white/90 mb-1 sm:mb-2">
               <div className="font-semibold">📅 6 de Junio</div>
-              <div>📍 Pedro de Valdivia 273</div>
+              <div className="truncate">📍 Pedro de Valdivia 273</div>
               <div>🕘 09:30 AM - 18:00 PM</div>
             </div>
-            <div className="text-xs text-white/70 text-center">¡No te lo pierdas!</div>
+            <div className="text-[8px] sm:text-xs text-white/70 text-center">¡No te lo pierdas!</div>
           </div>
         </div>
       </div>
@@ -1293,27 +1347,27 @@ export default function TerminalStyleVisualizer() {
         </div>
       )}
 
-      {/* Terminal Header con Instagram de Abogrado */}
-      <div className="absolute top-4 left-4 text-white z-10 font-mono">
-        <div className="text-xs text-white/70 mb-1 uppercase tracking-widest">MODE</div>
-        <div className="text-base sm:text-lg text-white uppercase tracking-wider">ABOGRADO ENCICLOPEDIA</div>
-        <div className="text-xs text-white/70 mt-1">
+      {/* Terminal Header con Instagram de Abogrado - Mejorado para móviles */}
+      <div className="absolute top-2 left-2 sm:top-4 sm:left-4 text-white z-10 font-mono">
+        <div className="text-[9px] sm:text-xs text-white/70 mb-1 uppercase tracking-widest">MODE</div>
+        <div className="text-sm sm:text-base md:text-lg text-white uppercase tracking-wider">ABOGRADO ENCICLOPEDIA</div>
+        <div className="text-[9px] sm:text-xs text-white/70 mt-1">
           DATAPOINTS:{" "}
           {Object.values(categoryStats)
             .reduce((a, b) => a + b, 0)
             .toLocaleString()}
         </div>
         {autoExploreMode && (
-          <div className="text-xs text-white/50 mt-1">
+          <div className="text-[8px] sm:text-xs text-white/50 mt-1">
             AUTO EXPLORE: {autoExploreRef.current.currentPerspective || "ACTIVE"}
           </div>
         )}
-        <div className="mt-2">
+        <div className="mt-1 sm:mt-2">
           <a
             href="https://www.instagram.com/abogrado_?igsh=ZXNxa2s2eHIyMmQ="
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-white/60 hover:text-white transition-colors duration-200 uppercase tracking-wider"
+            className="text-[8px] sm:text-xs text-white/60 hover:text-white transition-colors duration-200 uppercase tracking-wider"
           >
             @ABOGRADO_
           </a>
@@ -1395,23 +1449,23 @@ export default function TerminalStyleVisualizer() {
         </button>
       </div>
 
-      {/* Terminal Instructions - Reposicionado para evitar superposición */}
+      {/* Terminal Instructions - Mejorado para móviles */}
+      <div className="absolute bottom-2 left-2 right-2 text-white/60 text-[8px] sm:text-xs z-10 font-mono sm:hidden">
+        <div className="bg-black/30 px-2 py-1 border border-white/20 text-center">
+          {autoExploreMode ? "AUTO EXPLORE: ACTIVO" : "TOCA: ROTAR | PELLIZCA: ZOOM"}
+        </div>
+      </div>
+
+      {/* Desktop instructions */}
       <div className="absolute bottom-4 left-40 sm:left-48 text-white/60 text-xs z-10 font-mono hidden sm:block">
         <div className="bg-black/30 px-3 py-2 border border-white/20">
           {autoExploreMode ? "AUTO EXPLORE MODE: ACTIVE" : "DRAG: ROTATE | WHEEL: ZOOM | CLICK: DETAILS"}
         </div>
       </div>
 
-      {/* Terminal Instructions Mobile - Visible solo en móviles */}
-      <div className="absolute bottom-4 left-4 right-4 text-white/60 text-xs z-10 font-mono sm:hidden">
-        <div className="bg-black/30 px-2 py-1 border border-white/20 text-center">
-          {autoExploreMode ? "AUTO EXPLORE: ACTIVE" : "TOUCH: ROTATE | PINCH: ZOOM"}
-        </div>
-      </div>
-
-      {/* Audio Controls - Nuevo posicionamiento en la parte inferior */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-        <div className="bg-black/90 border border-white/30 px-3 py-2 text-xs font-mono backdrop-blur-sm flex items-center gap-3">
+      {/* Audio Controls - Optimizado para móviles */}
+      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-10 sm:bottom-4">
+        <div className="bg-black/90 border border-white/30 px-2 py-1 sm:px-3 sm:py-2 text-[9px] sm:text-xs font-mono backdrop-blur-sm flex items-center gap-2 sm:gap-3">
           <button
             onClick={toggleAudio}
             disabled={!audioLoaded}
@@ -1429,14 +1483,14 @@ export default function TerminalStyleVisualizer() {
               step="0.1"
               value={audioVolume}
               onChange={(e) => handleVolumeChange(Number.parseFloat(e.target.value))}
-              className="w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+              className="w-12 sm:w-16 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
               style={{
                 background: `linear-gradient(to right, #ffffff ${audioVolume * 100}%, rgba(255,255,255,0.2) ${audioVolume * 100}%)`,
               }}
             />
           )}
-          <span className="text-white/50">{Math.round(audioVolume * 100)}%</span>
-          {!audioLoaded && <span className="text-white/50">LOADING...</span>}
+          <span className="text-white/50 text-[8px] sm:text-xs">{Math.round(audioVolume * 100)}%</span>
+          {!audioLoaded && <span className="text-white/50 text-[8px] sm:text-xs">LOADING...</span>}
         </div>
       </div>
 
