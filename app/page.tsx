@@ -304,7 +304,7 @@ export default function TerminalStyleVisualizer() {
 
       // URL de música ambiental (puedes cambiar esta URL por cualquier MP3)
       // Usando una URL de ejemplo - puedes reemplazarla con tu propio archivo
-      audio.src = "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" // Placeholder
+      audio.src = "/audio/ambient-music.mp3" // Placeholder
       audio.loop = true
       audio.volume = audioVolume
       audio.preload = "auto"
