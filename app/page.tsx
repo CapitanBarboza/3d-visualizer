@@ -915,7 +915,7 @@ export default function TerminalStyleVisualizer() {
 
     const loader = new GLTFLoader()
     const GLB_URL =
-      "https://raw.githubusercontent.com/CapitanBarboza/MineCamp/887176f2a3eefe96e0b99d340ebbf10777446103/puntos_derecho_clusterizados_2.glb"
+      "https://raw.githubusercontent.com/CapitanBarboza/3d-visualizer/895d75e0aa5e02d429c24887ae52e39de9b74705/public/puntos_derecho_clusterizados_2.glb"
 
     try {
       const gltf = await loader.loadAsync(GLB_URL)
