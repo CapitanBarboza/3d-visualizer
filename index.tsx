@@ -148,7 +148,7 @@ export default function Visualizador3D() {
         // Cargar modelo GLB
         const loader = new GLTFLoader()
         loader.load(
-          "https://raw.githubusercontent.com/CapitanBarboza/3d-visualizer/895d75e0aa5e02d429c24887ae52e39de9b74705/public/puntos_derecho_clusterizados_2.glb",
+          "https://raw.githubusercontent.com/CapitanBarboza/3d-visualizer/8183c32596d3aef78e77d427bd679f29e75659ef/public/puntos_derecho_clusterizados_2.glb",
           (gltf) => {
             if (sceneRef.current) {
               // Ajustar escala y posición del modelo
